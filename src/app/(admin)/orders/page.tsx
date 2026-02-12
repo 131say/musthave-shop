@@ -1,7 +1,16 @@
 // src/app/(admin)/orders/page.tsx
+import { Prisma } from '@prisma/client';
 import { prisma } from '@/lib/prisma';
 import { format } from 'date-fns';
 import { ru } from 'date-fns/locale';
+
+type OrderWithUser = Prisma.OrderGetPayload<{
+  include: {
+    user: { include: { referredBy: true } };
+    items: { include: { product: true } };
+    referralEvents: true;
+  };
+}>;
 
 export const dynamic = 'force-dynamic';
 
@@ -25,7 +34,7 @@ function formatDeliveryTime(deliveryTime: string): string {
 }
 
 export default async function AdminOrdersPage() {
-  const orders = await prisma.order.findMany({
+  const orders: OrderWithUser[] = await prisma.order.findMany({
     orderBy: { createdAt: 'desc' },
     include: {
       items: {
@@ -52,7 +61,7 @@ export default async function AdminOrdersPage() {
         <p className="text-sm text-slate-500">Пока нет заказов.</p>
       ) : (
         <div className="space-y-3">
-          {orders.map((order) => {
+          {orders.map((order: OrderWithUser) => {
             const customer = order.user;
             const inviter = customer?.referredBy ?? null;
 
