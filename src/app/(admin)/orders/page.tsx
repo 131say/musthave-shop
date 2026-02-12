@@ -1,16 +1,14 @@
 // src/app/(admin)/orders/page.tsx
-import { Prisma } from '@prisma/client';
+import type { Order, User, OrderItem, Product, ReferralEvent } from '@prisma/client';
 import { prisma } from '@/lib/prisma';
 import { format } from 'date-fns';
 import { ru } from 'date-fns/locale';
 
-type OrderWithUser = Prisma.OrderGetPayload<{
-  include: {
-    user: { include: { referredBy: true } };
-    items: { include: { product: true } };
-    referralEvents: true;
-  };
-}>;
+type OrderWithUser = Order & {
+  user: (User & { referredBy: User | null }) | null;
+  items: Array<OrderItem & { product: Product }>;
+  referralEvents: ReferralEvent[];
+};
 
 export const dynamic = 'force-dynamic';
 
@@ -34,7 +32,7 @@ function formatDeliveryTime(deliveryTime: string): string {
 }
 
 export default async function AdminOrdersPage() {
-  const orders: OrderWithUser[] = await prisma.order.findMany({
+  const orders = (await prisma.order.findMany({
     orderBy: { createdAt: 'desc' },
     include: {
       items: {
@@ -49,7 +47,7 @@ export default async function AdminOrdersPage() {
       },
       referralEvents: true,
     },
-  });
+  })) as unknown as OrderWithUser[];
 
   return (
     <div className="space-y-4">
