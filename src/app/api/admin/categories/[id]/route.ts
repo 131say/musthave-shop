@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { NextRequest, NextResponse } from "next/server";
 import { prisma } from "@/lib/prisma";
 import { requireAdmin } from "@/lib/admin-auth";
 
@@ -22,13 +22,17 @@ async function uniqueSlugExcept(base: string, exceptId: number) {
   }
 }
 
-export async function PATCH(req: Request, ctx: { params: { id: string } }) {
+export async function PATCH(
+  req: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
   try {
+    const { id: idParam } = await params;
     // Проверка должна быть server-side, не только в UI
     const authCheck = await requireAdmin();
     if (authCheck) return authCheck;
-    
-    const id = Number(ctx.params.id);
+
+    const id = Number(idParam);
     if (!Number.isFinite(id)) return NextResponse.json({ error: "Bad id" }, { status: 400 });
 
     const body = await req.json().catch(() => null);
@@ -60,13 +64,17 @@ export async function PATCH(req: Request, ctx: { params: { id: string } }) {
   }
 }
 
-export async function DELETE(_req: Request, ctx: { params: { id: string } }) {
+export async function DELETE(
+  _req: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
   try {
+    const { id: idParam } = await params;
     // Проверка должна быть server-side, не только в UI
     const authCheck = await requireAdmin();
     if (authCheck) return authCheck;
-    
-    const id = Number(ctx.params.id);
+
+    const id = Number(idParam);
     if (!Number.isFinite(id)) return NextResponse.json({ error: "Bad id" }, { status: 400 });
 
     // запретим удалять, если есть дочерние или привязки к товарам
