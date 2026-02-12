@@ -1,0 +1,331 @@
+// prisma/schema.prisma
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model AppSettings {
+  id                        Int      @id @default(1)
+  customerPercent           Int      @default(3) // %
+  inviterPercent            Int      @default(5) // % - L1 реферер
+  inviterBonusLevel2Percent Int      @default(2) // % - L2 реферер (дедушка/бабушка реф.)
+  allowFullBonusPay         Boolean  @default(true)
+  reservePercent            Int      @default(30) // % от cashPaid, целевой резерв
+  slotBaseBonus             Int      @default(1000)
+  slotStepBonus             Int      @default(500)
+  // Промо-блок на главной странице
+  promoTitle                String? // Заголовок промо-блока
+  promoDescription          String? // Описание промо-блока
+  promoTags                 String? // JSON массив тегов: ["тег1", "тег2", "тег3"]
+  promoImageUrl             String? // URL изображения для промо-блока
+  createdAt                 DateTime @default(now())
+  updatedAt                 DateTime @updatedAt
+}
+
+model Category {
+  id       Int    @id @default(autoincrement())
+  name     String @unique
+  slug     String @unique
+  parentId Int?
+
+  parent   Category?  @relation("CategoryTree", fields: [parentId], references: [id])
+  children Category[] @relation("CategoryTree")
+
+  products ProductCategory[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([parentId])
+}
+
+model ProductCategory {
+  id         Int @id @default(autoincrement())
+  productId  Int
+  categoryId Int
+
+  product  Product  @relation(fields: [productId], references: [id], onDelete: Cascade)
+  category Category @relation(fields: [categoryId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@unique([productId, categoryId])
+  @@index([productId])
+  @@index([categoryId])
+}
+
+model User {
+  id                          Int       @id @default(autoincrement())
+  login                       String?   @unique
+  name                        String?
+  phone                       String?
+  address                     String?
+  email                       String?   @unique
+  referralCode                String    @unique
+  passwordHash                String?
+  referredByUserId            Int?
+  bonusBalance                Int       @default(0) // в бонусных баллах/тенге, решим позже
+  role                        UserRole  @default(CUSTOMER)
+  slotsTotal                  Int       @default(1)
+  slotsUsed                   Int       @default(0)
+  referralsEnabled            Boolean   @default(false) // флаг открытия 2 уровня (команда): true = открыт, false = закрыт (открывается при 3 активных рефералах L1)
+  referralActivationRequested Boolean   @default(false) // запрос на активацию реферальной программы (устаревшее, можно удалить позже)
+  onboardingCompletedAt       DateTime? // дата завершения онбординга
+
+  // Связи
+  referredBy         User?           @relation("UserReferrals", fields: [referredByUserId], references: [id])
+  referrals          User[]          @relation("UserReferrals")
+  orders             Order[]
+  referralEvents     ReferralEvent[]
+  referredUserEvents ReferralEvent[] @relation("ReferralEventReferredUser")
+  reviews            Review[]
+  supportChats       SupportChat[]
+  wishlist           Wishlist[]
+
+  // placement (структура слотов)
+  placementParentId Int?
+  placementSlot     Int?
+  placementParent   User?  @relation("UserPlacement", fields: [placementParentId], references: [id])
+  placements        User[] @relation("UserPlacement")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([placementParentId, placementSlot])
+}
+
+model Product {
+  id            Int     @id @default(autoincrement())
+  name          String
+  slug          String  @unique
+  brandId       Int?
+  description   String?
+  price         Int // цена в тг (в целых тенге)
+  costPrice     Int // себестоимость (оптовая цена)
+  oldPrice      Int?
+  imageUrl      String?
+  isActive      Boolean @default(true)
+  isBestseller  Boolean @default(false) // Хит
+  isNew         Boolean @default(false) // Новинка
+  isRecommended Boolean @default(false) // Рекомендуем
+
+  brand Brand? @relation(fields: [brandId], references: [id])
+
+  categories ProductCategory[]
+  orderItems OrderItem[]
+  // tags/attributes
+  attributes ProductAttribute[]
+  reviews    Review[]
+  wishlist   Wishlist[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([brandId])
+}
+
+model Brand {
+  id       Int       @id @default(autoincrement())
+  name     String    @unique
+  slug     String    @unique
+  products Product[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+// Универсальные атрибуты (под: Тип кожи / Назначение / Активы / и т.д.)
+model AttributeGroup {
+  id        Int              @id @default(autoincrement())
+  name      String           @unique
+  slug      String           @unique
+  sort      Int              @default(0)
+  values    AttributeValue[]
+  createdAt DateTime         @default(now())
+  updatedAt DateTime         @updatedAt
+}
+
+model AttributeValue {
+  id        Int                @id @default(autoincrement())
+  groupId   Int
+  name      String
+  slug      String
+  sort      Int                @default(0)
+  group     AttributeGroup     @relation(fields: [groupId], references: [id])
+  products  ProductAttribute[]
+  createdAt DateTime           @default(now())
+  updatedAt DateTime           @updatedAt
+
+  @@unique([groupId, slug])
+  @@index([groupId])
+}
+
+model ProductAttribute {
+  productId Int
+  valueId   Int
+  product   Product        @relation(fields: [productId], references: [id], onDelete: Cascade)
+  value     AttributeValue @relation(fields: [valueId], references: [id], onDelete: Cascade)
+
+  @@id([productId, valueId])
+  @@index([valueId])
+}
+
+model Order {
+  id              Int         @id @default(autoincrement())
+  userId          Int?
+  customerName    String
+  customerPhone   String
+  customerAddress String?
+  comment         String?
+  deliveryTime    String? // время доставки (например, "10:00-12:00", "14:00-16:00")
+  status          OrderStatus @default(NEW)
+  totalAmount     Int // общая сумма заказа в тг
+  bonusSpent      Int         @default(0) // списано бонусами
+  cashPaid        Int         @default(0) // оплачено наличными/картой
+  bonusRefunded   Boolean     @default(false) // флаг возврата списанных бонусов (защита от двойного возврата)
+
+  user           User?           @relation(fields: [userId], references: [id])
+  items          OrderItem[]
+  referralEvents ReferralEvent[]
+  reviews        Review[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model OrderItem {
+  id               Int @id @default(autoincrement())
+  orderId          Int
+  productId        Int
+  quantity         Int
+  priceAtMoment    Int // цена товара в момент заказа
+  subtotal         Int // quantity * priceAtMoment
+  returnedQuantity Int @default(0) // количество возвращенных товаров
+
+  order   Order   @relation(fields: [orderId], references: [id])
+  product Product @relation(fields: [productId], references: [id])
+}
+
+model ReferralEvent {
+  id             Int          @id @default(autoincrement())
+  userId         Int // кому начисляем или с кем связано событие
+  referredUserId Int?
+  orderId        Int?
+  type           ReferralType
+  amount         Int // размер бонуса (+ или -)
+  note           String?
+
+  user         User   @relation(fields: [userId], references: [id])
+  referredUser User?  @relation("ReferralEventReferredUser", fields: [referredUserId], references: [id])
+  order        Order? @relation(fields: [orderId], references: [id])
+
+  createdAt DateTime @default(now())
+
+  // Защита: за каждый заказ не более одного LEVEL_BONUS события
+  @@unique([orderId, type])
+  @@index([userId])
+  @@index([referredUserId])
+  @@index([orderId])
+}
+
+model NewsPost {
+  id          Int      @id @default(autoincrement())
+  title       String
+  content     String
+  isPublished Boolean  @default(false)
+  pinned      Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([isPublished, pinned, createdAt])
+}
+
+model Review {
+  id        Int     @id @default(autoincrement())
+  userId    Int
+  productId Int
+  rating    Int // 1-5 звезд
+  comment   String? // текст отзыва
+  orderId   Int? // заказ, по которому был куплен товар
+
+  user    User    @relation(fields: [userId], references: [id])
+  product Product @relation(fields: [productId], references: [id])
+  order   Order?  @relation(fields: [orderId], references: [id])
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([productId])
+  @@index([userId])
+  @@index([orderId])
+}
+
+enum OrderStatus {
+  NEW
+  PROCESSING
+  PAID
+  SHIPPED
+  DONE
+  CANCELLED
+}
+
+enum ReferralType {
+  SIGNUP_BONUS // бонус за регистрацию по реф.коду
+  ORDER_BONUS // бонус за заказ: используется для Уровень 0 (собственная покупка, referredUserId = null) и Уровень 1 (прямые рефералы, referredUserId != null)
+  BONUS_SPENT // списание бонусов при оплате заказа
+  BONUS_SPENT_REFUND // возврат списанных бонусов при отмене заказа
+  LEVEL_BONUS // бонус 2-го уровня (команда): начисляется за рефералов рефералов (L2)
+  MANUAL_ADJUSTMENT // ручная корректировка
+}
+
+model SupportChat {
+  id        Int      @id @default(autoincrement())
+  userId    Int
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user     User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  messages SupportMessage[]
+
+  @@index([userId])
+  @@index([isActive, updatedAt])
+}
+
+model SupportMessage {
+  id          Int      @id @default(autoincrement())
+  chatId      Int
+  text        String
+  isFromAdmin Boolean  @default(false)
+  isRead      Boolean  @default(false)
+  createdAt   DateTime @default(now())
+
+  chat SupportChat @relation(fields: [chatId], references: [id], onDelete: Cascade)
+
+  @@index([chatId, createdAt])
+  @@index([isRead])
+}
+
+model Wishlist {
+  id        Int @id @default(autoincrement())
+  userId    Int
+  productId Int
+
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@unique([userId, productId])
+  @@index([userId])
+  @@index([productId])
+}
+
+enum UserRole {
+  CUSTOMER
+  ADMIN
+}

@@ -1,0 +1,4 @@
+-- AlterTable
+ALTER TABLE "User" ADD COLUMN "slotsUsed" INTEGER NOT NULL DEFAULT 0;
+
+

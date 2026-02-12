@@ -1,0 +1,4 @@
+-- AlterTable
+ALTER TABLE "Product" ADD COLUMN "isBestseller" BOOLEAN DEFAULT 0;
+ALTER TABLE "Product" ADD COLUMN "isNew" BOOLEAN DEFAULT 0;
+ALTER TABLE "Product" ADD COLUMN "isRecommended" BOOLEAN DEFAULT 0;
