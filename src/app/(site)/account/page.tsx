@@ -16,6 +16,7 @@ type ApiOrderItem = {
   product?: {
     id: number;
     name: string;
+    slug?: string;
   } | null;
 };
 
