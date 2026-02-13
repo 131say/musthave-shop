@@ -6,6 +6,7 @@ export type CartItem = {
   imageUrl?: string | null;
   brandName?: string | null;
   slug?: string | null;
+  oldPrice?: number | null;
 };
 
 const CART_KEY = "musthave_cart";
