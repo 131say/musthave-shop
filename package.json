@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev -H 0.0.0.0",
-    "build": "npx prisma generate && next build",
+    "build": "DATABASE_URL=\"file:./prisma/dev.db\" npx prisma generate && next build",
     "start": "next start -H 0.0.0.0",
     "lint": "eslint",
     "seed": "tsx scripts/seed.ts",
