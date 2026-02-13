@@ -1,4 +1,5 @@
 // src/app/(site)/layout.tsx
+import { Suspense } from "react";
 import { CartProvider } from '@/components/cart/CartProvider';
 import Link from 'next/link';
 import { CartBadge } from '@/components/cart/CartBadge';
@@ -18,7 +19,9 @@ export default function SiteLayout({
   return (
     <CartProvider>
       <ThemeInit />
-      <ReferralRefHandler />
+      <Suspense fallback={null}>
+        <ReferralRefHandler />
+      </Suspense>
       <ConditionalHeader />
       <div className="mx-auto w-full max-w-5xl px-3 sm:px-4 py-4 sm:py-6 pb-24 min-h-screen sm:pb-6">
         <ConditionalHeader showHeader={true} />

@@ -2,6 +2,9 @@
   "name": "musthave",
   "version": "0.1.0",
   "private": true,
+  "engines": {
+    "node": "20.x"
+  },
   "scripts": {
     "dev": "next dev -H 0.0.0.0",
     "build": "DATABASE_URL=\"file:./prisma/dev.db\" npx prisma generate && next build",
@@ -16,11 +19,9 @@
     "seed": "tsx prisma/seed.ts"
   },
   "dependencies": {
-    "@prisma/adapter-better-sqlite3": "^7.1.0",
     "@prisma/client": "^7.1.0",
     "@types/bcryptjs": "^2.4.6",
     "bcryptjs": "^3.0.3",
-    "better-sqlite3": "^12.5.0",
     "date-fns": "^4.1.0",
     "dotenv": "^17.2.3",
     "next": "16.0.8",
@@ -28,8 +29,7 @@
     "react": "19.2.1",
     "react-dom": "19.2.1",
     "recharts": "^3.7.0",
-    "sharp": "^0.34.5",
-    "sqlite3": "^5.1.7"
+    "sharp": "^0.34.5"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
