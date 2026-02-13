@@ -10,7 +10,7 @@
     "seed": "tsx scripts/seed.ts",
     "test:financial": "tsx scripts/testFinancialScenarios.ts",
     "reset-for-production": "node scripts/reset-for-production.mjs",
-    "postinstall": "prisma generate"
+    "postinstall": "node -e \"process.env.DATABASE_URL ? require('child_process').execSync('npx prisma generate',{stdio:'inherit'}) : console.log('skip prisma generate: DATABASE_URL not set')\""
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"
