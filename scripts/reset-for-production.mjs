@@ -11,13 +11,19 @@
 
 import "dotenv/config";
 import { PrismaClient } from "@prisma/client";
-import { PrismaBetterSqlite3 } from "@prisma/adapter-better-sqlite3";
+import { PrismaPg } from "@prisma/adapter-pg";
 import bcrypt from "bcryptjs";
 
-const adapter = new PrismaBetterSqlite3({
-  url: process.env.DATABASE_URL || "file:./prisma/dev.db",
-});
+const dbUrl = process.env.DATABASE_URL;
+if (!dbUrl) {
+  console.error("❌ DATABASE_URL is required. Example: DATABASE_URL='postgresql://...' node scripts/reset-for-production.mjs");
+  process.exit(1);
+}
 
+const adapter = new PrismaPg({
+  connectionString: dbUrl,
+  ssl: dbUrl.includes("sslmode=require") ? { rejectUnauthorized: false } : undefined,
+});
 const prisma = new PrismaClient({ adapter });
 
 const ADMINS = [
@@ -78,8 +84,10 @@ async function main() {
     await tx.newsPost.deleteMany({});
   });
 
-  console.log("  → Сброс счётчиков sqlite_sequence...");
-  await prisma.$executeRawUnsafe("DELETE FROM sqlite_sequence");
+  if (process.env.DATABASE_URL?.startsWith("file:")) {
+    console.log("  → Сброс счётчиков sqlite_sequence...");
+    await prisma.$executeRawUnsafe("DELETE FROM sqlite_sequence");
+  }
   console.log("  ✅ Всё удалено.\n");
 
   console.log("👤 Создаю двух администраторов...\n");

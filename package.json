@@ -7,7 +7,7 @@
   },
   "scripts": {
     "dev": "next dev -H 0.0.0.0",
-    "build": "DATABASE_URL=\"file:./prisma/dev.db\" npx prisma generate && next build",
+    "build": "npx prisma generate && next build",
     "start": "next start -H 0.0.0.0",
     "lint": "eslint",
     "seed": "tsx scripts/seed.ts",
@@ -19,18 +19,20 @@
     "seed": "tsx prisma/seed.ts"
   },
   "dependencies": {
+    "@prisma/adapter-pg": "^7.4.0",
     "@prisma/client": "^7.1.0",
+    "@tailwindcss/postcss": "^4.0.0",
     "@types/bcryptjs": "^2.4.6",
     "bcryptjs": "^3.0.3",
     "date-fns": "^4.1.0",
     "dotenv": "^17.2.3",
     "next": "16.0.8",
+    "pg": "^8.18.0",
     "prisma": "^7.1.0",
     "react": "19.2.1",
     "react-dom": "19.2.1",
     "recharts": "^3.7.0",
-    "sharp": "^0.34.5",
-    "@tailwindcss/postcss": "^4.0.0"
+    "sharp": "^0.34.5"
   },
   "devDependencies": {
     "@types/node": "^20",

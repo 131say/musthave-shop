@@ -1,5 +1,6 @@
 // src/lib/prisma.ts
 import { PrismaClient } from "@prisma/client";
+import { PrismaPg } from "@prisma/adapter-pg";
 
 const globalForPrisma = globalThis as unknown as {
   prismaInstance?: PrismaClient;
@@ -10,14 +11,20 @@ function getPrismaClient(): PrismaClient {
     return globalForPrisma.prismaInstance;
   }
 
-  if (!process.env.DATABASE_URL) {
-    process.env.DATABASE_URL = "file:./prisma/dev.db";
+  const dbUrl = process.env.DATABASE_URL;
+  if (!dbUrl) {
     if (process.env.NODE_ENV === "production") {
-      console.warn("[prisma] DATABASE_URL is not set; using fallback. Set DATABASE_URL in production.");
+      console.warn("[prisma] DATABASE_URL is not set. Set DATABASE_URL in production.");
     }
+    throw new Error("DATABASE_URL is required");
   }
 
+  const adapter = new PrismaPg({
+    connectionString: dbUrl,
+    ssl: dbUrl.includes("sslmode=require") ? { rejectUnauthorized: false } : undefined,
+  });
   const client = new PrismaClient({
+    adapter,
     log: process.env.NODE_ENV !== "production" ? ["warn", "error"] : ["error"],
   });
 
