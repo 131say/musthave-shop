@@ -1182,26 +1182,49 @@ export default function NewProductPage() {
               )}
             </div>
 
-            {/* Поле для URL: на мобильных text-base (16px), чтобы iOS не делал авто-зум при фокусе */}
-            <input
-              value={imageUrl}
-              onChange={(e) => {
-                setImageUrl(e.target.value);
-                setUploadError(null);
-                if (e.target.value && e.target.value.startsWith('/')) {
-                  setImagePreview(e.target.value);
-                } else if (!e.target.value) {
-                  setImagePreview(null);
-                }
-              }}
-              className="w-full rounded-xl border border-slate-200 px-3 py-2 text-base sm:text-sm outline-none focus:ring-2 focus:ring-rose-100 dark:border-neutral-700 dark:bg-neutral-800 dark:text-white dark:focus:ring-rose-900"
-              placeholder="/images/products/... или https://..."
-            />
-            {imageUrl && !uploadingImage && (
-              <div className="mt-2 text-xs text-slate-500 dark:text-gray-400">
-                Текущее изображение: {imageUrl}
-              </div>
-            )}
+            {/* Ссылка через prompt — на iOS не вызывает авто-зум при вставке */}
+            <div className="flex flex-col gap-2">
+              <button
+                type="button"
+                onClick={() => {
+                  const url = window.prompt('Вставьте прямую ссылку на изображение (URL):', imageUrl || '');
+                  if (url == null) return;
+                  const trimmed = url.trim();
+                  setImageUrl(trimmed);
+                  setUploadError(null);
+                  if (trimmed) {
+                    setImagePreview(trimmed.startsWith('/') || /^https?:\/\//i.test(trimmed) ? trimmed : null);
+                  } else {
+                    setImagePreview(null);
+                  }
+                }}
+                className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm text-slate-700 bg-white hover:bg-slate-50 dark:border-neutral-700 dark:bg-neutral-800 dark:text-gray-300 dark:hover:bg-neutral-700"
+              >
+                🔗 Вставить ссылку на фото
+              </button>
+              {imageUrl ? (
+                <div className="flex items-center justify-between gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 dark:border-neutral-700 dark:bg-neutral-800">
+                  <span className="truncate text-xs text-slate-600 dark:text-gray-400" title={imageUrl}>
+                    {imageUrl}
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setImageUrl('');
+                      setImagePreview(null);
+                      setUploadError(null);
+                    }}
+                    className="shrink-0 text-xs text-red-600 hover:underline dark:text-red-400"
+                  >
+                    Очистить
+                  </button>
+                </div>
+              ) : (
+                <p className="text-xs text-slate-500 dark:text-gray-400">
+                  Или нажмите кнопку выше и вставьте URL в окно (на телефоне не вызывает зум).
+                </p>
+              )}
+            </div>
           </div>
 
           <div className="flex items-center gap-3">
