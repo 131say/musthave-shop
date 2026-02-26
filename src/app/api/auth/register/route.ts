@@ -66,28 +66,29 @@ export async function POST(req: Request) {
 
     const passwordHash = await bcrypt.hash(password, 10);
 
-    // Создаём пользователя с генерацией referralCode
-    const created = await prisma.$transaction(async (tx) => {
-      const last = await tx.user.findFirst({
-        orderBy: { id: "desc" },
-        select: { id: true },
-      });
-      const nextNum = (last?.id ?? 0) + 1000;
-      const referralCode = `SAY${nextNum}`;
-
-      return tx.user.create({
-        data: {
-          login: loginNormalized,
-          name: name?.trim() || null,
-          role: "CUSTOMER",
-          referralCode,
-          bonusBalance: 0,
-          slotsTotal: 1,
-          passwordHash,
-          referredByUserId,
-        } as any,
-      });
+    // Последовательные запросы вместо транзакции (избегаем P2028 на Neon/Vercel)
+    console.log("[REGISTER] Checking last user id for referralCode...");
+    const last = await prisma.user.findFirst({
+      orderBy: { id: "desc" },
+      select: { id: true },
     });
+    const nextNum = (last?.id ?? 0) + 1000;
+    const referralCode = `SAY${nextNum}`;
+
+    console.log("[REGISTER] Creating user, referralCode:", referralCode);
+    const created = await prisma.user.create({
+      data: {
+        login: loginNormalized,
+        name: name?.trim() || null,
+        role: "CUSTOMER",
+        referralCode,
+        bonusBalance: 0,
+        slotsTotal: 1,
+        passwordHash,
+        referredByUserId,
+      } as any,
+    });
+    console.log("[REGISTER] User created, id:", created.id);
 
     // Автоматически логиним пользователя после регистрации
     const c = await cookies();
@@ -111,6 +112,7 @@ export async function POST(req: Request) {
       role: "CUSTOMER",
     });
   } catch (e: any) {
+    console.error("[REGISTER] Error at register:", e?.message, "code:", e?.code);
     console.error("POST /api/auth/register error", e);
     console.error("Error details:", {
       message: e?.message,

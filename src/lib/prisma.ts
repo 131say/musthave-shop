@@ -28,9 +28,8 @@ function getPrismaClient(): PrismaClient {
     log: process.env.NODE_ENV !== "production" ? ["warn", "error"] : ["error"],
   });
 
-  if (process.env.NODE_ENV !== "production") {
-    globalForPrisma.prismaInstance = client;
-  }
+  // Singleton и в production, чтобы не исчерпывать connection_limit пулера Neon
+  globalForPrisma.prismaInstance = client;
   return client;
 }
 
