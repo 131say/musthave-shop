@@ -393,36 +393,33 @@ export default function NewProductPage() {
                   g.name.toLowerCase().trim() === groupNameStr.toLowerCase().trim()
                 );
                 if (updatedGroup) {
-                  group = updatedGroup;
+                  group = { ...updatedGroup, values: updatedGroup.values ?? [] };
                 }
               } else {
-                // Возможно, группа уже существует (дубликат по имени)
-                // Попробуем найти её после обновления данных
                 await loadData();
-                group = attrGroups.find((g) => 
+                const found = attrGroups.find((g) => 
                   g.name.toLowerCase().trim() === groupNameStr.toLowerCase().trim()
                 );
-                if (!group) {
+                if (!found) {
                   console.error('Ошибка создания группы:', result?.error || 'Группа не найдена');
-                  continue; // Пропускаем эту группу
-                } else {
-                  foundItems.push(`Группа атрибутов "${groupNameStr}"`);
+                  continue;
                 }
+                group = { ...found, values: found.values ?? [] };
+                foundItems.push(`Группа атрибутов "${groupNameStr}"`);
               }
             } catch (e: any) {
               console.error('Ошибка создания группы атрибутов:', e);
-              // Попробуем найти существующую группу после обновления
               await loadData();
-              group = attrGroups.find((g) => 
+              const found = attrGroups.find((g) => 
                 g.name.toLowerCase().trim() === groupNameStr.toLowerCase().trim()
               );
-              if (!group) {
-                continue; // Пропускаем эту группу
-              }
+              if (!found) continue;
+              group = { ...found, values: found.values ?? [] };
             }
           }
           
           if (!group) continue;
+          const groupValues = group.values ?? [];
           
           // Обрабатываем значения атрибутов
           for (const valueName of values) {
@@ -430,7 +427,7 @@ export default function NewProductPage() {
             if (!valueNameStr) continue;
             
             // Ищем существующее значение
-            let value = group.values?.find((v) => 
+            let value = groupValues.find((v) => 
               v.name.toLowerCase().trim() === valueNameStr.toLowerCase().trim()
             );
             
@@ -449,12 +446,11 @@ export default function NewProductPage() {
                 if (res.ok && result?.value) {
                   foundAttrValueIds.push(result.value.id);
                   created.push(`Атрибут "${groupNameStr}" → "${valueNameStr}"`);
-                  // Обновляем список групп, чтобы получить новое значение
                   await loadData();
-                  // Обновляем ссылку на группу, чтобы получить актуальные значения
-                  group = attrGroups.find((g) => 
+                  const updatedGroup = attrGroups.find((g) => 
                     g.name.toLowerCase().trim() === groupNameStr.toLowerCase().trim()
                   );
+                  if (updatedGroup) group = { ...updatedGroup, values: updatedGroup.values ?? [] };
                 } else {
                   console.error('Ошибка создания значения:', result?.error);
                 }
