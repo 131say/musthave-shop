@@ -7,6 +7,12 @@ function normalizeLogin(v: unknown) {
   return String(v ?? "").trim().toLowerCase();
 }
 
+/** Генерирует уникальный реферальный код: SAY{база}-{случайный суффикс} */
+function generateReferralCode(baseNum: number): string {
+  const randomSuffix = Math.random().toString(36).substring(2, 8).toUpperCase().replace(/[^A-Z0-9]/g, "0");
+  return `SAY${baseNum}-${randomSuffix}`;
+}
+
 export async function POST(req: Request) {
   try {
     const body = await req.json().catch(() => null);
@@ -66,29 +72,43 @@ export async function POST(req: Request) {
 
     const passwordHash = await bcrypt.hash(password, 10);
 
-    // Последовательные запросы вместо транзакции (избегаем P2028 на Neon/Vercel)
+    // База для реферального кода: последний id по порядку (orderBy: id desc)
     console.log("[REGISTER] Checking last user id for referralCode...");
     const last = await prisma.user.findFirst({
       orderBy: { id: "desc" },
       select: { id: true },
     });
-    const nextNum = (last?.id ?? 0) + 1000;
-    const referralCode = `SAY${nextNum}`;
+    const baseNum = (last?.id ?? 0) + 1000;
 
-    console.log("[REGISTER] Creating user, referralCode:", referralCode);
-    const created = await prisma.user.create({
-      data: {
-        login: loginNormalized,
-        name: name?.trim() || null,
-        role: "CUSTOMER",
-        referralCode,
-        bonusBalance: 0,
-        slotsTotal: 1,
-        passwordHash,
-        referredByUserId,
-      } as any,
-    });
-    console.log("[REGISTER] User created, id:", created.id);
+    const maxAttempts = 5;
+    let created: { id: number } | null = null;
+    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+      const referralCode = generateReferralCode(baseNum);
+      console.log("[REGISTER] Creating user, attempt", attempt, "referralCode:", referralCode);
+      try {
+        created = await prisma.user.create({
+          data: {
+            login: loginNormalized,
+            name: name?.trim() || null,
+            role: "CUSTOMER",
+            referralCode,
+            bonusBalance: 0,
+            slotsTotal: 1,
+            passwordHash,
+            referredByUserId,
+          } as any,
+        });
+        console.log("[REGISTER] User created, id:", created.id);
+        break;
+      } catch (createErr: any) {
+        if (createErr?.code === "P2002" && attempt < maxAttempts) {
+          console.warn("[REGISTER] P2002 referralCode collision, retrying with new code...");
+          continue;
+        }
+        throw createErr;
+      }
+    }
+    if (!created) throw new Error("Failed to create user after retries");
 
     // Автоматически логиним пользователя после регистрации
     const c = await cookies();
