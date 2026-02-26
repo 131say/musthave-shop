@@ -149,8 +149,8 @@ export default function AdminPanelLayout({ children }: { children: React.ReactNo
           </button>
         </aside>
 
-        {/* Контент: слева отступ под кнопку-гамбургер на мобильных */}
-        <main className="flex-1 p-6 pl-14 pt-14 md:pl-6 md:pt-6 md:ml-0">
+        {/* Контент: min-w-0 и overflow-x-hidden — превью фото не растягивают страницу */}
+        <main className="flex-1 min-w-0 overflow-x-hidden p-6 pl-14 pt-14 md:pl-6 md:pt-6 md:ml-0">
           {children}
         </main>
       </div>

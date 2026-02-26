@@ -448,15 +448,15 @@ export default function AdminProductEditPage() {
           <div>
             <div className="text-xs font-medium text-slate-500 mb-1">Фото</div>
             
-            {/* Превью изображения */}
+            {/* Превью: ограничиваем ширину, чтобы не растягивать страницу на мобильных */}
             {imagePreview && (
-              <div className="mb-3 rounded-xl border border-slate-200 overflow-hidden bg-slate-50 dark:border-neutral-700 dark:bg-neutral-800">
-                <div className="aspect-[4/3] relative">
+              <div className="mb-3 w-full max-w-full min-w-0 rounded-xl border border-slate-200 overflow-hidden bg-slate-50 dark:border-neutral-700 dark:bg-neutral-800">
+                <div className="aspect-[4/3] relative w-full">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
                   <img
                     src={imagePreview}
                     alt="Превью"
-                    className="w-full h-full object-contain"
+                    className="max-w-full h-full w-full object-contain"
                     onError={() => {
                       setImgError(true);
                     }}
