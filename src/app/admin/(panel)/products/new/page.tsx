@@ -271,7 +271,11 @@ export default function NewProductPage() {
     setError(null);
 
     try {
-      const data = JSON.parse(jsonInput.trim());
+      // Убираем обёртку ```json ... ``` (ChatGPT, Gemini и т.д.)
+      let raw = jsonInput.trim();
+      const codeBlockMatch = raw.match(/^```(?:json)?\s*([\s\S]*?)```$/);
+      if (codeBlockMatch) raw = codeBlockMatch[1].trim();
+      const data = JSON.parse(raw);
 
       // Заполняем основные поля
       if (data.name) setName(String(data.name));
@@ -340,11 +344,17 @@ export default function NewProductPage() {
       }
 
       // Автоматически создаём или находим атрибуты (группы и значения)
-      if (data.attributes && typeof data.attributes === 'object') {
+      if (data.attributes && typeof data.attributes === 'object' && !Array.isArray(data.attributes)) {
         const foundAttrValueIds: number[] = [];
         
-        for (const [groupName, values] of Object.entries(data.attributes)) {
-          if (!Array.isArray(values)) continue;
+        for (const [groupName, valuesRaw] of Object.entries(data.attributes)) {
+          // Gemini и др. могут вернуть строку вместо массива — приводим к массиву
+          const values = Array.isArray(valuesRaw)
+            ? valuesRaw
+            : valuesRaw != null && typeof valuesRaw === 'string'
+              ? [valuesRaw]
+              : [];
+          if (values.length === 0) continue;
           
           const groupNameStr = String(groupName).trim();
           if (!groupNameStr) continue;
@@ -869,7 +879,7 @@ export default function NewProductPage() {
                     {/* Значения в группе */}
                     <div className="mt-3 space-y-2">
                       <div className="text-xs text-slate-500 dark:text-gray-400">Значения:</div>
-                      {g.values.map((v) => {
+                      {(g.values || []).map((v) => {
                         const isEditingValue = editValueId === v.id;
                         return (
                           <div key={v.id} className="flex items-center justify-between rounded-lg bg-slate-50 p-2 dark:bg-neutral-800">
@@ -1018,7 +1028,7 @@ export default function NewProductPage() {
                 <div key={g.id} className="rounded-xl border border-slate-200 p-3 dark:border-neutral-800">
                   <div className="text-sm font-semibold mb-2 dark:text-white">{g.name}</div>
                   <div className="flex flex-col gap-2">
-                    {g.values.map((v) => {
+                    {(g.values || []).map((v) => {
                       const vid = toInt(v.id) ?? 0;
                       const checked = selectedAttrValues.includes(vid);
                       const inputId = `attr-${g.slug}-${vid}`;

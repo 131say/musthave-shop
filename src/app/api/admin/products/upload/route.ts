@@ -25,11 +25,21 @@ function safeExtFromMime(mime: string, keepPng: boolean) {
   return "jpg";
 }
 
+// На Vercel и других serverless-платформах диск только для чтения — загрузка в public/ невозможна
+const READONLY_FS_HINT =
+  "На этом хостинге загрузка файлов недоступна. Используйте поле «Ссылка на изображение» ниже и вставьте прямую ссылку на картинку (например, с imgur.com, cloudinary.com или вашего сайта).";
+
 export async function POST(req: Request) {
   try {
-    // Проверка должна быть server-side, не только в UI
     const authCheck = await requireAdmin();
     if (authCheck) return authCheck;
+
+    if (process.env.VERCEL === "1") {
+      return NextResponse.json(
+        { error: READONLY_FS_HINT, code: "READONLY_FS" },
+        { status: 503 }
+      );
+    }
 
     const formData = await req.formData();
     const file = formData.get("file");
@@ -138,6 +148,12 @@ export async function POST(req: Request) {
     });
   } catch (e: any) {
     console.error("Upload error:", e);
+    if (e?.code === "EROFS" || (e?.path && String(e.path).includes("/var/task"))) {
+      return NextResponse.json(
+        { error: READONLY_FS_HINT, code: "READONLY_FS" },
+        { status: 503 }
+      );
+    }
     return NextResponse.json(
       { error: e?.message || "Upload failed" },
       { status: 500 }

@@ -92,8 +92,8 @@ export default function AdminPanelLayout({ children }: { children: React.ReactNo
             isSidebarOpen ? 'translate-x-0' : '-translate-x-full md:translate-x-0'
           }`}
         >
-          <div className="flex items-center justify-between mb-6">
-            <div className="text-xl font-semibold dark:text-white">MustHave Admin</div>
+          <div className="flex items-center justify-between gap-2 mb-6 min-w-0">
+            <div className="text-xl font-semibold dark:text-white truncate">MustHave Admin</div>
             <button
               onClick={() => setIsSidebarOpen(false)}
               className="md:hidden p-1 rounded-lg hover:bg-slate-100 dark:hover:bg-neutral-800"
@@ -121,15 +121,15 @@ export default function AdminPanelLayout({ children }: { children: React.ReactNo
                   key={item.href}
                   href={item.href}
                   onClick={() => setIsSidebarOpen(false)}
-                  className={`px-3 py-2 rounded-lg text-sm transition relative ${
+                  className={`flex items-center min-w-0 px-3 py-2 rounded-lg text-sm transition relative ${
                     pathname === item.href
                       ? 'bg-amber-600 text-white'
                       : 'text-slate-700 hover:bg-slate-100 dark:text-gray-300 dark:hover:bg-neutral-800'
                   }`}
                 >
-                  {item.label}
+                  <span className="truncate min-w-0">{item.label}</span>
                   {isChats && unreadChatsCount > 0 && (
-                    <span className="ml-2 inline-flex items-center justify-center rounded-full bg-red-500 px-2 py-0.5 text-xs font-semibold text-white">
+                    <span className="ml-2 shrink-0 inline-flex items-center justify-center rounded-full bg-red-500 px-2 py-0.5 text-xs font-semibold text-white">
                       {unreadChatsCount > 99 ? '99+' : unreadChatsCount}
                     </span>
                   )}
@@ -149,8 +149,8 @@ export default function AdminPanelLayout({ children }: { children: React.ReactNo
           </button>
         </aside>
 
-        {/* Контент */}
-        <main className="flex-1 p-6 md:ml-0">
+        {/* Контент: слева отступ под кнопку-гамбургер на мобильных */}
+        <main className="flex-1 p-6 pl-14 pt-14 md:pl-6 md:pt-6 md:ml-0">
           {children}
         </main>
       </div>
