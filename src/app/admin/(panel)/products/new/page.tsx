@@ -275,6 +275,9 @@ export default function NewProductPage() {
       let raw = jsonInput.trim();
       const codeBlockMatch = raw.match(/^```(?:json)?\s*([\s\S]*?)```$/);
       if (codeBlockMatch) raw = codeBlockMatch[1].trim();
+      raw = raw.replace(/\uFEFF/g, ''); // BOM
+      // Заменяем «кавычки-ёлочки» на обычные " (при вставке из мессенджеров/редакторов)
+      raw = raw.replace(/\u201C/g, '"').replace(/\u201D/g, '"').replace(/\u2018/g, "'").replace(/\u2019/g, "'");
       const data = JSON.parse(raw);
 
       // Заполняем основные поля
