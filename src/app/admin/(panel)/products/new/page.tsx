@@ -975,7 +975,7 @@ export default function NewProductPage() {
               value={jsonInput}
               onChange={(e) => setJsonInput(e.target.value)}
               rows={6}
-              className="w-full rounded-xl border border-slate-200 px-3 py-2 text-xs font-mono outline-none focus:ring-2 focus:ring-rose-100 dark:border-neutral-800 dark:bg-neutral-800 dark:text-white"
+              className="w-full rounded-xl border border-slate-200 px-3 py-2 text-base sm:text-xs font-mono outline-none focus:ring-2 focus:ring-rose-100 dark:border-neutral-800 dark:bg-neutral-800 dark:text-white"
               placeholder='{"name": "Название товара", "brandName": "COSRX", ...}'
             />
             <button
@@ -1058,12 +1058,13 @@ export default function NewProductPage() {
             </div>
           </div>
 
+          {/* На мобильных text-base (16px), чтобы iOS не делал авто-зум при фокусе */}
           <div>
             <div className="text-xs font-medium text-slate-500 dark:text-gray-400">Название*</div>
             <input
               value={name}
               onChange={(e) => setName(e.target.value)}
-              className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-rose-100 dark:border-neutral-800 dark:bg-neutral-800 dark:text-white"
+              className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-base sm:text-sm outline-none focus:ring-2 focus:ring-rose-100 dark:border-neutral-800 dark:bg-neutral-800 dark:text-white"
             />
           </div>
 
@@ -1072,7 +1073,7 @@ export default function NewProductPage() {
             <input
               value={brandName}
               onChange={(e) => setBrandName(e.target.value)}
-              className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-rose-100 dark:border-neutral-800 dark:bg-neutral-800 dark:text-white"
+              className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-base sm:text-sm outline-none focus:ring-2 focus:ring-rose-100 dark:border-neutral-800 dark:bg-neutral-800 dark:text-white"
               placeholder="Например: COSRX"
             />
           </div>
@@ -1083,7 +1084,7 @@ export default function NewProductPage() {
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               rows={4}
-              className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-rose-100 dark:border-neutral-800 dark:bg-neutral-800 dark:text-white"
+              className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-base sm:text-sm outline-none focus:ring-2 focus:ring-rose-100 dark:border-neutral-800 dark:bg-neutral-800 dark:text-white"
             />
           </div>
 
@@ -1094,7 +1095,7 @@ export default function NewProductPage() {
                 value={price}
                 onChange={(e) => setPrice(e.target.value)}
                 inputMode="numeric"
-                className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-rose-100 dark:border-neutral-800 dark:bg-neutral-800 dark:text-white"
+                className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-base sm:text-sm outline-none focus:ring-2 focus:ring-rose-100 dark:border-neutral-800 dark:bg-neutral-800 dark:text-white"
                 placeholder="например 8900"
               />
             </div>
@@ -1105,7 +1106,7 @@ export default function NewProductPage() {
                 value={oldPrice}
                 onChange={(e) => setOldPrice(e.target.value)}
                 inputMode="numeric"
-                className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-rose-100 dark:border-neutral-800 dark:bg-neutral-800 dark:text-white"
+                className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-base sm:text-sm outline-none focus:ring-2 focus:ring-rose-100 dark:border-neutral-800 dark:bg-neutral-800 dark:text-white"
                 placeholder="например 9500"
               />
             </div>
@@ -1117,7 +1118,7 @@ export default function NewProductPage() {
               value={costPrice}
               onChange={(e) => setCostPrice(e.target.value)}
               inputMode="numeric"
-              className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-rose-100 dark:border-neutral-800 dark:bg-neutral-800 dark:text-white"
+              className="mt-1 w-full rounded-xl border border-slate-200 px-3 py-2 text-base sm:text-sm outline-none focus:ring-2 focus:ring-rose-100 dark:border-neutral-800 dark:bg-neutral-800 dark:text-white"
               placeholder="3750"
             />
           </div>
@@ -1181,20 +1182,19 @@ export default function NewProductPage() {
               )}
             </div>
 
-            {/* Поле для URL (альтернативный способ) */}
+            {/* Поле для URL: на мобильных text-base (16px), чтобы iOS не делал авто-зум при фокусе */}
             <input
               value={imageUrl}
               onChange={(e) => {
                 setImageUrl(e.target.value);
                 setUploadError(null);
-                // Обновляем превью если URL изменился
                 if (e.target.value && e.target.value.startsWith('/')) {
                   setImagePreview(e.target.value);
                 } else if (!e.target.value) {
                   setImagePreview(null);
                 }
               }}
-              className="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-rose-100 dark:border-neutral-700 dark:bg-neutral-800 dark:text-white dark:focus:ring-rose-900"
+              className="w-full rounded-xl border border-slate-200 px-3 py-2 text-base sm:text-sm outline-none focus:ring-2 focus:ring-rose-100 dark:border-neutral-700 dark:bg-neutral-800 dark:text-white dark:focus:ring-rose-900"
               placeholder="/images/products/... или https://..."
             />
             {imageUrl && !uploadingImage && (
