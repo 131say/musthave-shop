@@ -105,7 +105,7 @@ export default function AdminChatsPage() {
       if (selectedChatId) {
         loadMessages(selectedChatId);
       }
-    }, 15000); // Обновляем каждые 15 секунд (снижаем нагрузку на БД)
+    }, 20000); // Обновляем каждые 20 секунд (снижаем нагрузку на БД и Vercel)
 
     return () => clearInterval(interval);
   }, [selectedChatId]);
