@@ -30,7 +30,7 @@ export async function POST(
     // Проверяем пользователя через прямой SQL для обхода проблем с типизацией Prisma
     const users = await prisma.$queryRaw<any[]>`
       SELECT id 
-      FROM User 
+      FROM "User" 
       WHERE id = ${userId}
     `;
     
@@ -44,16 +44,16 @@ export async function POST(
     // Обновляем через прямой SQL для обхода проблем с типизацией Prisma
     if (enabled) {
       // Если включаем доступ, сбрасываем флаг запроса
-      await prisma.$executeRaw`UPDATE User SET referralsEnabled = 1, referralActivationRequested = 0 WHERE id = ${userId}`;
+      await prisma.$executeRaw`UPDATE "User" SET "referralsEnabled" = true, "referralActivationRequested" = false WHERE id = ${userId}`;
     } else {
       // Если выключаем доступ, оставляем флаг запроса без изменений
-      await prisma.$executeRaw`UPDATE User SET referralsEnabled = 0 WHERE id = ${userId}`;
+      await prisma.$executeRaw`UPDATE "User" SET "referralsEnabled" = false WHERE id = ${userId}`;
     }
 
     // Получаем обновленные данные
     const updatedRaw = await prisma.$queryRaw<any[]>`
-      SELECT id, referralsEnabled, referralActivationRequested
-      FROM User 
+      SELECT id, "referralsEnabled", "referralActivationRequested"
+      FROM "User" 
       WHERE id = ${userId}
     `;
     

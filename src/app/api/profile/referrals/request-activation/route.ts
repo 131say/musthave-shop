@@ -16,8 +16,8 @@ export async function POST() {
 
     // Проверяем пользователя через прямой SQL для обхода проблем с типизацией Prisma
     const users = await prisma.$queryRaw<any[]>`
-      SELECT id, referralsEnabled 
-      FROM User 
+      SELECT id, "referralsEnabled" 
+      FROM "User" 
       WHERE id = ${userId}
     `;
     
@@ -35,7 +35,7 @@ export async function POST() {
 
     // Устанавливаем флаг запроса на активацию
     // Используем прямой SQL для обхода проблем с типизацией Prisma (как в других местах)
-    await prisma.$executeRaw`UPDATE User SET referralActivationRequested = 1 WHERE id = ${userId}`;
+    await prisma.$executeRaw`UPDATE "User" SET "referralActivationRequested" = true WHERE id = ${userId}`;
 
     return NextResponse.json({ ok: true, message: "Запрос на активацию отправлен" });
   } catch (e: any) {

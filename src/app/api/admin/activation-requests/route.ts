@@ -11,10 +11,10 @@ export async function GET() {
     // Получаем всех пользователей, которые запросили активацию, но доступ еще не включен
     // Используем прямой SQL для обхода проблем с типизацией Prisma
     const usersRaw = await prisma.$queryRaw<any[]>`
-      SELECT id, login, phone, name, referralCode, createdAt, referralActivationRequested, referralsEnabled
-      FROM User
-      WHERE referralActivationRequested = 1 AND referralsEnabled = 0
-      ORDER BY createdAt DESC
+      SELECT id, login, phone, name, "referralCode", "createdAt", "referralActivationRequested", "referralsEnabled"
+      FROM "User"
+      WHERE "referralActivationRequested" = true AND "referralsEnabled" = false
+      ORDER BY "createdAt" DESC
     `;
 
     // Преобразуем boolean из SQLite (0/1) в true/false

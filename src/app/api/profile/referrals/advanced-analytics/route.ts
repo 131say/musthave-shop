@@ -19,8 +19,8 @@ export async function GET(req: Request) {
 
     // Проверяем, является ли пользователь блоггером
     const users = await prisma.$queryRaw<any[]>`
-      SELECT id, referralsEnabled 
-      FROM User 
+      SELECT id, "referralsEnabled" 
+      FROM "User" 
       WHERE id = ${userId}
     `;
     
@@ -62,10 +62,10 @@ export async function GET(req: Request) {
 
     // Получаем всех приглашённых пользователей
     const invitedUsers = await prisma.$queryRaw<any[]>`
-      SELECT id, name, phone, login, createdAt 
-      FROM User 
-      WHERE referredByUserId = ${userId}
-      ORDER BY createdAt DESC
+      SELECT id, name, phone, login, "createdAt" 
+      FROM "User" 
+      WHERE "referredByUserId" = ${userId}
+      ORDER BY "createdAt" DESC
     `;
 
     // Статистика за период

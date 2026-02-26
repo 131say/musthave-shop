@@ -16,8 +16,8 @@ export async function GET() {
 
     // Используем прямой SQL запрос для обхода проблем с типизацией Prisma
     const users = await prisma.$queryRaw<any[]>`
-      SELECT id, name, phone, address, referralsEnabled, referralActivationRequested, referralCode, onboardingCompletedAt, referredByUserId
-      FROM User 
+      SELECT id, name, phone, address, "referralsEnabled", "referralActivationRequested", "referralCode", "onboardingCompletedAt", "referredByUserId"
+      FROM "User" 
       WHERE id = ${userId}
     `;
     

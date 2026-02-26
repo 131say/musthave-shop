@@ -19,8 +19,8 @@ export async function GET() {
 
     // Проверяем доступ к рефералам через прямой SQL
     const users = await prisma.$queryRaw<any[]>`
-      SELECT id, referralsEnabled 
-      FROM User 
+      SELECT id, "referralsEnabled" 
+      FROM "User" 
       WHERE id = ${userId}
     `;
     
@@ -34,10 +34,10 @@ export async function GET() {
 
     // Получаем всех приглашённых пользователей через прямой SQL
     const invitedUsers = await prisma.$queryRaw<any[]>`
-      SELECT id, name, phone, login, createdAt 
-      FROM User 
-      WHERE referredByUserId = ${userId}
-      ORDER BY createdAt DESC
+      SELECT id, name, phone, login, "createdAt" 
+      FROM "User" 
+      WHERE "referredByUserId" = ${userId}
+      ORDER BY "createdAt" DESC
     `;
 
     // Получаем статистику для каждого приглашённого
