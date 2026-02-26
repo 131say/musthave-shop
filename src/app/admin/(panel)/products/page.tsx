@@ -227,7 +227,6 @@ export default async function AdminProductsPage({
               <ProductToggle productId={p.id} initialActive={p.isActive} />
             </div>
             </div>
-            </div>
           </div>
         ))}
 
