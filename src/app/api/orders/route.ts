@@ -256,8 +256,31 @@ export async function POST(req: Request) {
           customerPhone: result.customerPhone || customerPhone,
         });
       } catch (notifyError) {
-        // Логируем ошибку, но не ломаем создание заказа
         console.error("[ORDERS] Failed to send order created notification:", notifyError);
+      }
+      // Отправка заявки в Telegram-канал (если заданы TELEGRAM_BOT_TOKEN и TELEGRAM_ORDER_CHAT_ID)
+      try {
+        const { sendOrderToChannel } = await import("@/lib/telegram");
+        const itemsSummary = rows
+          .map((r) => {
+            const p = byId.get(r.productId);
+            return p ? `${p.name} × ${r.quantity}` : null;
+          })
+          .filter(Boolean)
+          .join("\n");
+        await sendOrderToChannel({
+          id: result.orderId,
+          customerName,
+          customerPhone: result.customerPhone || customerPhone,
+          customerAddress,
+          totalAmount,
+          bonusSpent: bonusToSpend || 0,
+          comment: comment || null,
+          deliveryTime: deliveryTime || null,
+          itemsSummary: itemsSummary || undefined,
+        });
+      } catch (tgError) {
+        console.error("[ORDERS] Failed to send order to Telegram:", tgError);
       }
     }
 

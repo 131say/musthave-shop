@@ -45,9 +45,9 @@ export default function AdminPanelLayout({ children }: { children: React.ReactNo
     };
 
     loadUnreadCount();
-    // Обновляем каждые 5 секунд, если не на странице чатов
+    // Обновляем каждые 20 секунд, если не на странице чатов (снижаем нагрузку на БД)
     if (pathname !== '/admin/chats') {
-      const interval = setInterval(loadUnreadCount, 5000);
+      const interval = setInterval(loadUnreadCount, 20000);
       return () => clearInterval(interval);
     }
   }, [pathname]);

@@ -30,10 +30,10 @@ export default function ChatWidget() {
     }
   };
 
-  // Проверяем непрочитанные каждые 10 секунд
+  // Проверяем непрочитанные каждые 20 секунд (снижаем нагрузку на БД)
   useEffect(() => {
     checkUnread();
-    const interval = setInterval(checkUnread, 10000);
+    const interval = setInterval(checkUnread, 20000);
     return () => clearInterval(interval);
   }, []);
 

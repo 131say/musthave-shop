@@ -121,7 +121,8 @@ export default async function AdminProductsPage({
       />
 
       <div className="overflow-hidden rounded-2xl border border-slate-200 bg-white dark:border-neutral-700 dark:bg-neutral-900">
-        <div className="grid grid-cols-12 gap-2 border-b border-slate-200 bg-slate-50 px-4 py-3 text-xs font-semibold text-slate-600 dark:border-neutral-700 dark:bg-neutral-800 dark:text-gray-300">
+        {/* Заголовок таблицы — только на md и выше */}
+        <div className="hidden md:grid grid-cols-12 gap-2 border-b border-slate-200 bg-slate-50 px-4 py-3 text-xs font-semibold text-slate-600 dark:border-neutral-700 dark:bg-neutral-800 dark:text-gray-300">
           <div className="col-span-4">Товар</div>
           <div className="col-span-1">Бренд</div>
           <div className="col-span-2">Категории</div>
@@ -131,10 +132,47 @@ export default async function AdminProductsPage({
         </div>
 
         {products.map((p) => (
-          <div
-            key={p.id}
-            className="grid grid-cols-12 items-center gap-2 border-b border-slate-100 px-4 py-3 last:border-b-0 dark:border-neutral-700"
-          >
+          <div key={p.id} className="border-b border-slate-100 last:border-b-0 dark:border-neutral-700">
+            {/* Мобильная карточка */}
+            <div
+              className="md:hidden px-4 py-4"
+            >
+              <div className="flex gap-3">
+                <div className="h-14 w-14 shrink-0 overflow-hidden rounded-xl border border-slate-200 bg-slate-50 dark:border-neutral-700 dark:bg-neutral-800">
+                  <ProductImage
+                    imageUrl={getThumbImage(p.imageUrl)}
+                    alt={p.name}
+                    className="h-full w-full object-cover"
+                  />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <div className="font-medium text-slate-900 dark:text-white">{p.name}</div>
+                  <div className="text-xs text-slate-500 dark:text-gray-400">#{p.id}</div>
+                  <div className="mt-2 space-y-1 text-xs text-slate-600 dark:text-gray-300">
+                    <div><span className="text-slate-500 dark:text-gray-400">Бренд:</span> {p.brand?.name || '—'}</div>
+                    <div><span className="text-slate-500 dark:text-gray-400">Категории:</span> {Array.isArray(p.categories) && p.categories.length ? p.categories.map((x: any) => x.category?.name).filter(Boolean).slice(0, 3).join(', ') : '—'}</div>
+                    <div><span className="text-slate-500 dark:text-gray-400">Цена:</span> <span className="font-semibold dark:text-white">{p.price.toLocaleString('ru-RU')} ₸</span></div>
+                    {p.oldPrice != null && (
+                      <div><span className="text-slate-500 dark:text-gray-400">Старая:</span> <span className="line-through">{p.oldPrice.toLocaleString('ru-RU')} ₸</span></div>
+                    )}
+                  </div>
+                  <div className="mt-3 flex flex-wrap items-center gap-2">
+                    <Link
+                      href={`/admin/products/${p.id}`}
+                      className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-xs text-slate-700 hover:bg-slate-50 dark:border-neutral-700 dark:bg-neutral-800 dark:text-gray-300 dark:hover:bg-neutral-700"
+                    >
+                      Редактировать
+                    </Link>
+                    <ProductToggle productId={p.id} initialActive={p.isActive} />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Десктопная строка таблицы */}
+            <div
+              className="hidden md:grid grid-cols-12 items-center gap-2 px-4 py-3"
+            >
             <div className="col-span-4 min-w-0">
               <div className="flex items-center gap-3">
                 <div className="h-12 w-12 overflow-hidden rounded-xl border border-slate-200 bg-slate-50 flex items-center justify-center dark:border-neutral-700 dark:bg-neutral-800">
@@ -187,6 +225,8 @@ export default async function AdminProductsPage({
                 Редактировать
               </Link>
               <ProductToggle productId={p.id} initialActive={p.isActive} />
+            </div>
+            </div>
             </div>
           </div>
         ))}
