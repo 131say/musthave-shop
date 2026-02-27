@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import { prisma } from "@/lib/prisma";
+import { sendSupportChatNotification } from "@/lib/telegram";
 
 async function getUserIdFromCookie(): Promise<number | null> {
   const c = await cookies();
@@ -37,6 +38,16 @@ export async function GET(req: Request) {
     // Проверяем доступ к чату
     const chat = await prisma.supportChat.findUnique({
       where: { id: chatId },
+      include: {
+        user: {
+          select: {
+            id: true,
+            name: true,
+            phone: true,
+            login: true,
+          },
+        },
+      },
     });
 
     if (!chat) {
@@ -150,6 +161,25 @@ export async function POST(req: Request) {
       where: { id: chatId },
       data: { updatedAt: new Date() },
     });
+
+    // Отправляем уведомление в Telegram только для сообщений от пользователя
+    if (!admin) {
+      const userName =
+        chat.user.name ||
+        chat.user.login ||
+        (chat.user.phone ? `+${chat.user.phone}` : null) ||
+        `User #${chat.user.id}`;
+
+      // Не блокируем основной ответ, если Telegram не отвечает
+      sendSupportChatNotification({
+        supportChatId: chatId,
+        text,
+        userName,
+        userPhone: chat.user.phone,
+      }).catch((e) => {
+        console.error("[TELEGRAM] Failed to send support chat notification:", e);
+      });
+    }
 
     return NextResponse.json({
       ok: true,

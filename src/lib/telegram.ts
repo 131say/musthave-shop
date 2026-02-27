@@ -1,8 +1,3 @@
-/**
- * Отправка уведомлений в Telegram (канал/чат заявок).
- * Нужны: TELEGRAM_BOT_TOKEN, TELEGRAM_ORDER_CHAT_ID (ID канала или чата, например -1001234567890 или @channel_username).
- */
-
 const TELEGRAM_API = "https://api.telegram.org/bot";
 
 export type OrderPayload = {
@@ -17,9 +12,6 @@ export type OrderPayload = {
   itemsSummary?: string;
 };
 
-/**
- * Отправляет сообщение в чат/канал через Bot API.
- */
 async function sendMessage(chatId: string, text: string): Promise<boolean> {
   const token = process.env.TELEGRAM_BOT_TOKEN;
   if (!token?.trim()) {
@@ -98,4 +90,72 @@ export async function sendOrderToChannel(order: OrderPayload): Promise<boolean> 
 
   const text = lines.join("\n");
   return sendMessage(chatId, text);
+}
+
+/**
+ * Отправляет уведомление о новом сообщении в чате поддержки.
+ * Нужны: TELEGRAM_BOT_TOKEN, TELEGRAM_SUPPORT_CHAT_ID.
+ */
+export async function sendSupportChatNotification(params: {
+  supportChatId: number;
+  text: string;
+  userName?: string | null;
+  userPhone?: string | null;
+}): Promise<boolean> {
+  const token = process.env.TELEGRAM_BOT_TOKEN?.trim();
+  const chatId = process.env.TELEGRAM_SUPPORT_CHAT_ID?.trim();
+
+  if (!token) {
+    console.log("[TELEGRAM] TELEGRAM_BOT_TOKEN not set, skip support notification.");
+    return false;
+  }
+  if (!chatId) {
+    console.log("[TELEGRAM] TELEGRAM_SUPPORT_CHAT_ID not set, skip support notification.");
+    return false;
+  }
+
+  const lines: string[] = [
+    "💬 <b>Новое сообщение в чате поддержки</b>",
+    "",
+    `Чат #<b>${params.supportChatId}</b>`,
+  ];
+
+  const displayName =
+    params.userName && params.userName.trim()
+      ? params.userName
+      : params.userPhone && params.userPhone.trim()
+      ? params.userPhone
+      : null;
+
+  if (displayName) {
+    lines.push(`👤 ${escapeHtml(displayName)}`);
+  }
+
+  lines.push("", `💭 ${escapeHtml(params.text)}`);
+
+  const body = {
+    chat_id: chatId,
+    text: lines.join("\n"),
+    parse_mode: "HTML" as const,
+    disable_web_page_preview: true,
+  };
+
+  const url = `${TELEGRAM_API}${token}/sendMessage`;
+
+  try {
+    const res = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    });
+    const data = await res.json().catch(() => ({}));
+    if (!data.ok) {
+      console.error("[TELEGRAM] sendSupportChatNotification failed:", data.description || res.status);
+      return false;
+    }
+    return true;
+  } catch (e) {
+    console.error("[TELEGRAM] sendSupportChatNotification error:", e);
+    return false;
+  }
 }

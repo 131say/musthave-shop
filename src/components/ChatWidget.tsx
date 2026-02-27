@@ -10,12 +10,8 @@ export default function ChatWidget() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
   
-  // Скрываем чат на каталоге, странице товара, чекауте, избранном и кабинете (чтобы не мешал просмотру)
-  const isCatalogPage = pathname === "/catalog" || pathname?.startsWith("/catalog");
-  const isProductPage = pathname?.startsWith("/product/");
+  // Скрываем чат только на чекауте, чтобы не мешать оформлению заказа
   const isCheckoutPage = pathname?.startsWith("/checkout");
-  const isFavoritesPage = pathname === "/favorites";
-  const isAccountPage = pathname === "/account" || pathname?.startsWith("/account/");
 
   // Проверка непрочитанных сообщений
   const checkUnread = async () => {
@@ -43,8 +39,8 @@ export default function ChatWidget() {
     checkUnread();
   };
 
-  // Не показываем чат на каталоге, странице товара, чекауте, избранном и кабинете (включая /account/orders/…)
-  if (isCatalogPage || isProductPage || isCheckoutPage || isFavoritesPage || isAccountPage) {
+  // Не показываем чат только на чекауте
+  if (isCheckoutPage) {
     return null;
   }
 
